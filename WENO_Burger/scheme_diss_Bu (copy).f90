@@ -210,12 +210,9 @@ enddo
 
 
 do i=2,2
-	beta(0) = (13.0d0/12.0d0)*(f_plus(2) - 2*f_plus(i-1) + f_plus(i))**2 
-	beta(0) = beta(0) +  (1/4.0d0)*(f_plus(2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2
-	beta(1) = beta(1)  + (1/4.0d0)*(f_plus(i-1) - f_plus(i+1))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(i+2))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(i+2))**2
+	beta(0) = (13.0d0/12.0d0)*(f_plus(2) - 2*f_plus(i-1) + f_plus(i))**2 + (1/4.0d0)*(f_plus(2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
+	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2 + (1/4.0d0)*(f_plus(i-1) - f_plus(i+1))**2
+	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(i+2))**2 + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(i+2))**2
 
 	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
 
@@ -243,13 +240,10 @@ enddo
 
 
 do i=1,1
-	beta(0) = (13.0d0/12.0d0)*(f_plus(3) - 2*f_plus(2) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(3)-4.0d0*f_plus(2)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(2) - 2*f_plus(i) + f_plus(i+1))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(2) - f_plus(i+1))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(i+2))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(i+2))**2
-	
+	beta(0) = (13.0d0/12.0d0)*(f_plus(3) - 2*f_plus(2) + f_plus(i))**2 + (1/4.0d0)*(f_plus(3)-4.0d0*f_plus(2)+3.0d0*f_plus(i))**2
+	beta(1) = (13.0d0/12.0d0)*(f_plus(2) - 2*f_plus(i) + f_plus(i+1))**2 + (1/4.0d0)*(f_plus(2) - f_plus(i+1))**2
+	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(i+2))**2 + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(i+2))**2
+
 	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
 
 	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
@@ -279,12 +273,9 @@ enddo
 
 
 do i=n+1,n+1
-	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(n))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(i-1) - f_plus(n))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(n) + f_plus(n-1))**2
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(n) + f_plus(n-1))**2
+	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
+	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(n))**2 + (1/4.0d0)*(f_plus(i-1) - f_plus(n))**2
+	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(n) + f_plus(n-1))**2 + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(n) + f_plus(n-1))**2
 
 	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
 
@@ -317,12 +308,9 @@ enddo
 	
 
 do i=n,n
-	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(i-1) - f_plus(i+1))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(n))**2 
-	beta(2)  = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(n))**2
+	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
+	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2 + (1/4.0d0)*(f_plus(i-1) - f_plus(i+1))**2
+	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(n))**2 + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(n))**2
 	
 	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
 

@@ -29,22 +29,17 @@
  
  dt=Nc*dx/C
 
-! do i=1,n+1   
-!     dist=real(i-1)*dx
-!   if(i .lt. 5001) then 
-!		disp(i) = 2.0d0
-!   else
-!		disp(i) = 1.0d0
-!   end if
-
- !enddo
- 
  do i=1,n+1
-
+    
     dist=real(i-1)*dx
-  ! disp(i)=1.0d0*EXP(-4.d0*kappa1*(dist-50.0d0)**2)+0.050d0*EXP(-0.01d0*kappa*(dist-x0)**2)*DSIN(kappa*(dist-x0))!*DSIN(kappa1*(dist-5))
-    disp(i)=1.0d0*EXP(-1.d0*(dist-25.0d0)**2)*cos(kappa*(dist-25.0d0))
+    if(dist .lt. 35.0d0 .and. dist .gt. 25.0d0) then 
+		disp(i) = 2.0d0
+    else
+		disp(i) = 0.0d0
+    end if
+
  enddo
+ 
 
  cnt=0
  time=0.0d0

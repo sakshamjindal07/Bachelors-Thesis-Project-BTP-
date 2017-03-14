@@ -1,6 +1,6 @@
  module variable
  implicit none
- integer,parameter :: n=10000
+ integer,parameter :: n=200
  double precision :: dt,time,Tmax=100.0d0,dist,x0,x1,Amp2=0.0000d0,Amp1=5.0d0
  double precision :: Nc,C=1.00d0,kh,dx,Len,kappa,eps=1.0d-08,fact,pi,kappa1
  double precision,dimension(1:n+1) ::disp,ddisp,predisp,exdisp,fdisp,d4disp
@@ -15,8 +15,8 @@
  character*11:: filestr
  real:: diss
 
- Nc=0.0750d0
- Len=100.0d0
+ Nc=0.50d0
+ Len=2.0d0
  pi=ATAN(1.0d0)*4.0d0
  diss=0.0
  kh = 1.0d0
@@ -29,22 +29,14 @@
  
  dt=Nc*dx/C
 
-! do i=1,n+1   
-!     dist=real(i-1)*dx
-!   if(i .lt. 5001) then 
-!		disp(i) = 2.0d0
-!   else
-!		disp(i) = 1.0d0
-!   end if
-
- !enddo
- 
  do i=1,n+1
+    
+    dist=real(i-1)*dx - 1.0d0
+    disp(i) = -sin(pi*dist)
+    end if
 
-    dist=real(i-1)*dx
-  ! disp(i)=1.0d0*EXP(-4.d0*kappa1*(dist-50.0d0)**2)+0.050d0*EXP(-0.01d0*kappa*(dist-x0)**2)*DSIN(kappa*(dist-x0))!*DSIN(kappa1*(dist-5))
-    disp(i)=1.0d0*EXP(-1.d0*(dist-25.0d0)**2)*cos(kappa*(dist-25.0d0))
  enddo
+ 
 
  cnt=0
  time=0.0d0
@@ -61,10 +53,10 @@
      filestr(6:6)=ACHAR(48 + mod((cnt/1),10))
      filestr(7:10)='.dat'
      open(1,file=filestr,status='replace')
-     write(1,*)'VARIABLES= DISTANCE,DISPLACEMENT,Forth_Der'
+     write(1,*)'VARIABLES= DISTANCE,DISPLACEMENT'
      do i=1,n+1
-       dist=real(i-1)*dx
-       write(1,*)dist,disp(i),d4disp(i)
+       dist=real(i-1)*dx - 1.0d0
+       write(1,*)dist,disp(i)
      enddo
     endif
 
