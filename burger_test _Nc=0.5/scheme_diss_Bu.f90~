@@ -53,7 +53,7 @@
      filestr(6:6)=ACHAR(48 + mod((cnt/1),10))
      filestr(7:10)='.dat'
      open(1,file=filestr,status='replace')
-     !write(1,*)'VARIABLES= DISTANCE,DISPLACEMENT'
+     write(1,*)'VARIABLES= DISTANCE,DISPLACEMENT'
      do i=1,n+1
        dist=real(i-1)*dx - 1.0d0
        write(1,*)dist,',',disp(i)
@@ -106,19 +106,19 @@
      disp(i)=(1.0d0/3.0d0)*predisp(i)+(2.0d0/3.0d0)*disp(i)+ (2.0d0/3.0d0)*dt*k3(i)
    enddo ! THIRD STAGE COMPLETE
 
-   call ccdderivatives!ddisp_dx
+  ! call ccdderivatives!ddisp_dx
 
-   do i=1,n+1
-     IF(ABS(d4disp(i)).gt.1.0d0) THEN
-        k4(i)= (fdisp(i))
-     ELSE
-        k4(i)= fdisp(i)
-     ENDIF
-   enddo
+   !do i=1,n+1
+     !IF(ABS(d4disp(i)).gt.1.0d0) THEN
+       ! k4(i)= (fdisp(i))
+     !ELSE
+        !k4(i)= fdisp(i)
+     !ENDIF
+   !enddo
 
-   do i=1,n+1
-     disp(i)=predisp(i)+(dt/6.0d0)*(k1(i)+2.0d0*k2(i)+2.0d0*k3(i)+k4(i))
-   enddo ! FOURTH STAGE COMPLETE
+   !do i=1,n+1
+     !disp(i)=predisp(i)+(dt/6.0d0)*(k1(i)+2.0d0*k2(i)+2.0d0*k3(i)+k4(i))
+   !enddo ! FOURTH STAGE COMPLETE
 
 
    cnt=cnt+1
@@ -135,10 +135,10 @@ subroutine ccdderivatives
 use VARIABLE
 implicit none
 
-
 double precision,dimension(0:2) :: beta , d , alpha , w
 double precision,dimension(0:2,0:2)::a
-double precision,dimension(n+1)::f_plus,f_minus , f_plus_half , f_minus_half, fu 
+double precision,dimension(n+1):: fu 
+double precision,dimension(-2:n+4)::f_plus, f_minus , f_plus_half , f_minus_half
 double precision  :: epsilon , maxv , temp
 integer :: l , k , r , z 
 
@@ -150,9 +150,9 @@ f_plus = 0.0d0
 f_minus = 0.0d0
 epsilon = 0.0000010d0
 
-a(0,0) = 2.0d0/6.0d0 ; a(0,1) = 5.0d0/6.0d0 ; a(0,2) = -1.0d0/6.0d0
-a(1,0) = -1.0d0/6.0d0 ; a(1,1) = 5.0d0/6.0d0 ; a(1,2) = 2.0d0/6.0d0
-a(2,0) = 2.0d0/6.0d0 ; a(2,1) = -7.0d0/6.0d0 ; a(2,2) = 11.0d0/6.0d0
+a(0,0) = 2.0d0/6.0d0 ;  a(0,1) = -7.0d0/6.0d0 ;  a(0,2) = 11.0d0/6.0d0
+a(1,0) = -1.0d0/6.0d0 ; a(1,1) = 5.0d0/6.0d0 ;   a(1,2) = 2.0d0/6.0d0
+a(2,0) = 2.0d0/6.0d0 ;  a(2,1) = 5.0d0/6.0d0 ;   a(2,2) = -1.0d0/6.0d0
 
 
 r = 3
@@ -161,20 +161,25 @@ d = 0.0d0
 alpha = 0.0d0
 w = 0.0d0
 
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 maxv = maxval(disp)
 
 
 do i=1,n+1
         fu(i) = 0.50d0*disp(i)*disp(i)
-	    f_plus(i) = 0.50d0 * ( fu(i) + maxv*disp(i) )
+	f_plus(i) = 0.50d0 * ( fu(i) + maxv*disp(i) )
         f_minus(i) = 0.50d0 * ( fu(i) - maxv*disp(i) )
 enddo
 
+f_plus(0) = f_plus(n) ; f_minus(0) = f_minus(n)
+f_plus(-1) = f_plus(n-1) ; f_minus(-1) = f_minus(n-1)
+f_plus(-2) = f_plus(n-2) ; f_minus(-2) = f_minus(n-2)
+f_plus(n+2) = f_plus(2) ; f_minus(n+2) = f_minus(2)
+f_plus(n+3) = f_plus(3) ; f_minus(n+3) = f_minus(3)
+f_plus(n+4) = f_plus(4) ; f_minus(n+4) = f_minus(4)
 
 
-
-do i=3,n-1
+do i=0,n+1
 	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 
 	beta(0) = beta(0) + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
 	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2 
@@ -189,169 +194,24 @@ do i=3,n-1
 	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
 	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
 	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-	
-    temp = w(0)
-    w(0) = w(2)
-    w(2) = temp	
 
-	do k=0,r-1
-		do l=0,r-1
-			f_plus_half(i) = f_plus_half(i) + w(k)*a(k,l)*f_plus(i-k+l)
-		enddo
-	enddo
+	f_plus_half(i) = w(0)*(a(0,0)*f_plus(i-2) + a(0,1)*f_plus(i-1) + a(0,2)*f_plus(i)) &
+			 + w(1)*(a(1,0)*f_plus(i-1) + a(1,1)*f_plus(i) + a(1,2)*f_plus(i+1)) &
+			 + w(2)*(a(2,0)*f_plus(i) + a(2,1)*f_plus(i+1) + a(2,2)*f_plus(i+2))
+	
+
 enddo
 
+!!! Working on f_minus_half!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!!!!!!!!!!
 
-do i=2,2
-	beta(0) = (13.0d0/12.0d0)*(f_plus(n) - 2*f_plus(i-1) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(n)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(i-1) - f_plus(i+1))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(i+2))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(i+2))**2
-
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-
-    temp = w(0)
-    w(0) = w(2)
-    w(2) = temp
-
-	do k=0,r-1
-		do l=0,r-1
-			z = i-k+l
-			if(z .eq. 0) then
-				z = n
-			end if
-			f_plus_half(i) = f_plus_half(i) + w(k)*a(k,l)*f_plus(z)
-		enddo
-	enddo
-enddo
-
-
-
-do i=1,1
-	beta(0) = (13.0d0/12.0d0)*(f_plus(n-1) - 2*f_plus(n) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(n-1)-4.0d0*f_plus(n)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(n) - 2*f_plus(i) + f_plus(i+1))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(n) - f_plus(i+1))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(i+2))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(i+2))**2
-	
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-	
-    temp = w(0)
-    w(0) = w(2)
-    w(2) = temp
-
-
-	do k=0,r-1
-		do l=0,r-1
-			z = i-k+l	
-			if(z .eq. 0) then
-				z=n
-			end if
-			if(z .eq. -1) then
-				z=n-1
-			end if
-			f_plus_half(i) = f_plus_half(i) + w(k)*a(k,l)*f_plus(z)
-		enddo
-	enddo
-enddo
-
-
-do i=n+1,n+1
-	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(2))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(i-1) - f_plus(2))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(2) + f_plus(3))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(2) + f_plus(3))**2
-
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-	
-    temp = w(0)
-    w(0) = w(2)
-    w(2) = temp
-
-
-	do k=0,r-1
-		do l=0,r-1
-			z=i-k+l
-			if(z .eq. n+2) then
-				z = 2
-			end if
-
-			if(z .eq. n+3) then
-				z = 3
-			end if
-
-			f_plus_half(i) = f_plus_half(i) + w(k)*a(k,l)*f_plus(z)
-		enddo
-	enddo
-enddo
-	
-
-do i=n,n
-	beta(0) = (13.0d0/12.0d0)*(f_plus(i-2) - 2*f_plus(i-1) + f_plus(i))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(f_plus(i-2)-4.0d0*f_plus(i-1)+3.0d0*f_plus(i))**2
-	beta(1) = (13.0d0/12.0d0)*(f_plus(i-1) - 2*f_plus(i) + f_plus(i+1))**2 
-	beta(1) = beta(1) + (1/4.0d0)*(f_plus(i-1) - f_plus(i+1))**2
-	beta(2) = (13.0d0/12.0d0)*(f_plus(i) - 2*f_plus(i+1) + f_plus(2))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(3.0d0*f_plus(i) - 4.0d0*f_plus(i+1) + f_plus(2))**2
-	
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-
-    temp = w(0)
-    w(0) = w(2)
-    w(2) = temp
-
-	do k=0,r-1
-		do l=0,r-1
-			z = i-k+l
-			if(z .eq. n+2) then
-				z = 2
-			end if
-			f_plus_half(i) = f_plus_half(i) + w(k)*a(k,l)*f_plus(z)
-		enddo
-	enddo
-end do 
-
-
-
-!!! Working on f_minus_half!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-a(0,0) = 11.0d0/6.0d0 ; a(0,1) = -7.0d0/6.0d0 ; a(0,2) = 2.0d0/6.0d0
+a(0,0) = -1.0d0/6.0d0 ; a(0,1) = 5.0d0/6.0d0; a(0,2) = 2.0d0/6.0d0
 a(1,0) = 2.0d0/6.0d0 ; a(1,1) = 5.0d0/6.0d0 ; a(1,2) = -1.0d0/6.0d0
-a(2,0) = -1.0d0/6.0d0 ; a(2,1) = 5.0d0/6.0d0 ; a(2,2) = 2.0d0/6.0d0
+a(2,0) = 11.0d0/6.0d0 ; a(2,1) = -7.0d0/6.0d0  ; a(2,2) = 2.0d0/6.0d0
 
 
 
 
-do i=2,n-2
+do i=0,n+1
 	beta(0) = ((13.0d0/12.0d0)*(f_minus(i+1) - 2*f_minus(i+2) + f_minus(i+3)))**2 
 	beta(0) = beta(0) + (1/4.0d0)*(3*f_minus(i+1)-4*f_minus(i+2)+f_minus(i+3))**2
 	beta(1) = (13.0d0/12.0d0)*(f_minus(i) - 2*f_minus(i+1) + f_minus(i+2))**2 + (1/4.0d0)*(f_minus(i) - f_minus(i+2))**2
@@ -365,162 +225,24 @@ do i=2,n-2
 	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
 	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
 	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
+
+	f_minus_half(i) =  w(2)*(a(0,0)*f_minus(i-1) + a(0,1)*f_minus(i) + a(0,2)*f_minus(i+1)) &
+			 + w(1)*(a(1,0)*f_minus(i) + a(1,1)*f_minus(i+1) + a(1,2)*f_minus(i+2)) &
+			 + w(0)*(a(2,0)*f_minus(i+1) + a(2,1)*f_minus(i+2) + a(2,2)*f_minus(i+3))
 	
-	do k=0,r-1
-		do l=0,r-1
-			f_minus_half(i) = f_minus_half(i) + w(k)*a(k,l)*f_minus(i-k+l+1)
-		enddo
-	enddo
+
 enddo
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-do i=1,1
-	beta(0) = ((13.0d0/12.0d0)*(f_minus(i+1) - 2*f_minus(i+2) + f_minus(i+3)))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(3*f_minus(i+1)-4*f_minus(i+2)+f_minus(i+3))**2
-	beta(1) = (13.0d0/12.0d0)*(f_minus(i) - 2*f_minus(i+1) + f_minus(i+2))**2 + (1/4.0d0)*(f_minus(i) - f_minus(i+2))**2
-	beta(2) = (13.0d0/12.0d0)*(f_minus(n) - 2*f_minus(i) + f_minus(i+1))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(f_minus(n) - 4*f_minus(i) + 3*f_minus(i+1))**2
-
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-
-	do k=0,r-1	
-		do l=0,r-1
-			z = i-k+l+1
-			if (z .eq. 0) then
-				z = n
-			end if
-			f_minus_half(i) = f_plus_half(i) + w(k)*a(k,l)*f_minus(z)
-		enddo
-	enddo
-enddo
-
-do i=n+1,n+1
-	beta(0) = ((13.0d0/12.0d0)*(f_minus(2) - 2*f_minus(3) + f_minus(4)))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(3*f_minus(2)-4*f_minus(3)+f_minus(4))**2
-	beta(1) = (13.0d0/12.0d0)*(f_minus(i) - 2*f_minus(2) + f_minus(3))**2 + (1/4.0d0)*(f_minus(i) - f_minus(3))**2
-	beta(2) = (13.0d0/12.0d0)*(f_minus(i-1) - 2*f_minus(i) + f_minus(2))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(f_minus(i-1) - 4*f_minus(i) + 3*f_minus(2))**2
-
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-
-
-	
-	do k=0,r-1
-		do l=0,r-1
-			z = i-k+l+1
-			if (z .eq. n+2) then
-				z = 2
-			end if
-
-			if (z .eq. n+3) then
-				z = 3
-			end if
-
-			if (z .eq. n+4) then
-				z = 4
-			end if
-
-			f_minus_half(i) = f_minus_half(i) + w(k)*a(k,l)*f_minus(z)
-		enddo
-	enddo
-enddo
-
-do i=n,n
-	beta(0) = ((13.0d0/12.0d0)*(f_minus(i+1) - 2*f_minus(2) + f_minus(3)))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(3*f_minus(i+1)-4*f_minus(2)+f_minus(3))**2
-	beta(1) = (13.0d0/12.0d0)*(f_minus(i) - 2*f_minus(i+1) + f_minus(2))**2 + (1/4.0d0)*(f_minus(i) - f_minus(2))**2
-	beta(2) = (13.0d0/12.0d0)*(f_minus(i-1) - 2*f_minus(i) + f_minus(i+1))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(f_minus(i-1) - 4*f_minus(i) + 3*f_minus(i+1))**2
-
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-
-
-
-	do k=0,r-1
-		do l=0,r-1
-			z = i-k+l+1
-			if (z .eq. n+2) then
-				z = 2
-			end if
-
-			if (z .eq. n+3) then
-				z = 3
-			end if
-
-
-			f_minus_half(i) = f_minus_half(i) + w(k)*a(k,l)*f_minus(z)
-		enddo
-	enddo
-enddo
-
-do i=n-1,n-1
-	beta(0) = ((13.0d0/12.0d0)*(f_minus(i+1) - 2*f_minus(i+2) + f_minus(2)))**2 
-	beta(0) = beta(0) + (1/4.0d0)*(3*f_minus(i+1)-4*f_minus(i+2)+f_minus(2))**2
-	beta(1) = (13.0d0/12.0d0)*(f_minus(i) - 2*f_minus(i+1) + f_minus(i+2))**2 + (1/4.0d0)*(f_minus(i) - f_minus(i+2))**2
-	beta(2) = (13.0d0/12.0d0)*(f_minus(i-1) - 2*f_minus(i) + f_minus(i+1))**2 
-	beta(2) = beta(2) + (1/4.0d0)*(f_minus(i-1) - 4*f_minus(i) + 3*f_minus(i+1))**2
-
-	d(0) = 	1.0d0/10.0d0 ; d(1) = 3.0d0/5.0d0 ; d(2) = 3.0d0/10.0d0
-
-	alpha(0) = d(0)/(epsilon + beta(0))**2 ; alpha(1) = d(1)/(epsilon + beta(1))**2 ; alpha(2) = d(2)/(epsilon + beta(2))**2
-
-	w(0) = alpha(0)/(alpha(0)+alpha(1)+alpha(2))
-	w(1) = alpha(1)/(alpha(0)+alpha(1)+alpha(2))  
-	w(2) = alpha(2)/(alpha(0)+alpha(1)+alpha(2))
-
-	do k=0,r-1
-		do l=0,r-1
-			z = i-k+l+1 	
-			if (z .eq. (n+2)) then
-				z = 2 
-			end if 
-			
-			f_minus_half(i) = f_minus_half(i) + w(k)*a(k,l)*f_minus(z)              !!!!!!!  f(-)_j+1/2
-		enddo
-	enddo
-enddo
-
-!!!!!!!!!!!!!!!!!!!!!!!
-
-
-do i=1,n+1
-	
-        f_plus(i) = f_plus_half(i) + f_minus_half(i)                                            !!!!!!!!  f _ j+1/2
-
-
+do i=0,n+1
+        f_plus(i) =  f_plus_half(i) + f_minus_half(i)                                            !!!!!!!!  f _ j+1/2
 end do
 
 do i=1,n+1
-
-	if(i .eq. 1) then
-		f_minus(i) = f_plus(n)                                                         
-	else
-        f_minus(i) = f_plus(i-1)                                                         !!!!!!!  f _ j-1/2
-    end if
-
-        fdisp(i) = -(1.0d0/dx)*(f_plus(i)-f_minus(i))
-
+	f_minus(i) = f_plus(i-1) 								!!!!!!!!  f _ j-1/2
+        fdisp(i) =   -(1.0d0/dx)*(f_plus(i)-f_minus(i))
 end do
-
-
         return
 
        end subroutine ccdderivatives

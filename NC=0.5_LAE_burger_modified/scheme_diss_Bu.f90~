@@ -1,8 +1,8 @@
  module variable
  implicit none
  integer,parameter :: n=200
- double precision :: dt,time,Tmax=2.0d0,dist,x0,x1,Amp2=0.0000d0,Amp1=5.0d0
- double precision :: Nc,C=1.00d0,kh,dx,Len,kappa,eps=1.0d-08,fact,pi,kappa1
+ double precision :: dt,time,Tmax=22.0d0,dist,x0,x1,Amp2=0.0000d0,Amp1=5.0d0
+ double precision :: Nc,C=1.00d0,kh,dx,Leng,kappa,eps=1.0d-08,fact,pi,kappa1
  double precision,dimension(1:n+1) ::disp,ddisp,predisp,exdisp,fdisp,d4disp
  double precision,dimension(n+1) :: disp_old,fdisp_old,ddisp_old,d4disp_old,res
  integer :: i,j,cnt,ii
@@ -16,12 +16,12 @@
  real:: diss
 
  Nc=0.50d0
- Len=2.0d0
+ Leng=2.0d0
  pi=ATAN(1.0d0)*4.0d0
  diss=0.0
  kh = 1.0d0
 
- dx=Len/real(n)
+ dx=Leng/real(n)
  !kappa=kh/dx
  
  kappa = 0.250d0*pi
@@ -31,9 +31,12 @@
 
  do i=1,n+1
     
-    dist=real(i-1)*dx - 1.0d0
-    disp(i) = -sin(pi*dist)
-    
+    dist=(i-1)*dx - 1.0d0
+    if (dist .lt. 0) then 
+	disp(i) = -sin(pi*dist) - 0.50d0*(dist**3)
+    else
+	disp(i) = -sin(pi*dist) - 0.50d0*(dist**3) + 1.0d0 
+    end if
 
  enddo
  
@@ -44,7 +47,7 @@
  do
  !   call ddisp_dx
 
-    if (mod(cnt,nint(100.0))==0) then
+    if (mod(cnt,nint(800.0))==0) then
      filestr(1:1)='e'
      filestr(2:2)=ACHAR(48 + mod((cnt/10000),10))
      filestr(3:3)=ACHAR(48 + mod((cnt/1000),10))
@@ -106,19 +109,19 @@
      disp(i)=(1.0d0/3.0d0)*predisp(i)+(2.0d0/3.0d0)*disp(i)+ (2.0d0/3.0d0)*dt*k3(i)
    enddo ! THIRD STAGE COMPLETE
 
-  ! call ccdderivatives!ddisp_dx
+   call ccdderivatives!ddisp_dx
 
-   !do i=1,n+1
-     !IF(ABS(d4disp(i)).gt.1.0d0) THEN
-       ! k4(i)= (fdisp(i))
-     !ELSE
-        !k4(i)= fdisp(i)
-     !ENDIF
-   !enddo
+   do i=1,n+1
+     IF(ABS(d4disp(i)).gt.1.0d0) THEN
+        k4(i)= (fdisp(i))
+     ELSE
+        k4(i)= fdisp(i)
+     ENDIF
+   enddo
 
-   !do i=1,n+1
-     !disp(i)=predisp(i)+(dt/6.0d0)*(k1(i)+2.0d0*k2(i)+2.0d0*k3(i)+k4(i))
-   !enddo ! FOURTH STAGE COMPLETE
+   do i=1,n+1
+     disp(i)=predisp(i)+(dt/6.0d0)*(k1(i)+2.0d0*k2(i)+2.0d0*k3(i)+k4(i))
+   enddo ! FOURTH STAGE COMPLETE
 
 
    cnt=cnt+1
@@ -128,8 +131,7 @@
  enddo
 
   end program noise
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine ccdderivatives
 use VARIABLE
@@ -162,13 +164,13 @@ alpha = 0.0d0
 w = 0.0d0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-maxv = maxval(disp)
+!maxv = maxval(disp)
 
 
 do i=1,n+1
-        fu(i) = 0.50d0*disp(i)*disp(i)
-	f_plus(i) = 0.50d0 * ( fu(i) + maxv*disp(i) )
-        f_minus(i) = 0.50d0 * ( fu(i) - maxv*disp(i) )
+        fu(i) = 1.0d0*disp(i)
+	f_plus(i) = 0.50d0 * ( fu(i) + 1.0d0*disp(i) )
+        f_minus(i) = 0.50d0 * ( fu(i) - 1.0d0*disp(i) )
 enddo
 
 f_plus(0) = f_plus(n) ; f_minus(0) = f_minus(n)
